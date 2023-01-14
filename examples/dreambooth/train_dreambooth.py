@@ -24,6 +24,9 @@ from PIL import Image
 from torchvision import transforms
 from tqdm.auto import tqdm
 from transformers import CLIPTextModel, CLIPTokenizer
+import wandb
+from torch import autocast
+
 
 
 torch.backends.cudnn.benchmark = True
@@ -34,6 +37,20 @@ logger = get_logger(__name__)
 
 def parse_args(input_args=None):
     parser = argparse.ArgumentParser(description="Simple example of a training script.")
+    parser.add_argument(
+        "--wandb_project",
+        type=str,
+        default=None,
+        required=True,
+        help="name of the wandb project"
+    ),
+    parser.add_argument(
+        "--prior_preservation_images",
+        type=str,
+        default=None,
+        required=True,
+        help="What method is used for prior preservation images? (generated or manually collected)"
+    ),
     parser.add_argument(
         "--pretrained_model_name_or_path",
         type=str,
@@ -401,6 +418,8 @@ def get_full_repo_name(model_id: str, organization: Optional[str] = None, token:
 
 
 def main(args):
+
+    run = wandb.init(project=args.wandb_project, config=args)
     logging_dir = Path(args.output_dir, "0", args.logging_dir)
 
     accelerator = Accelerator(
@@ -791,6 +810,7 @@ def main(args):
                 #         else unet.parameters()
                 #     )
                 #     accelerator.clip_grad_norm_(params_to_clip, args.max_grad_norm)
+                wandb.log({'loss': loss.detach().item()})
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad(set_to_none=True)
@@ -814,7 +834,55 @@ def main(args):
 
     save_weights(global_step)
 
+
+
+
+    # run_inference(args)
+
+    wandb.finish()
+
+
     accelerator.end_training()
+
+
+def run_inference(args):
+    model_path = args.output_dir           # If you want to use previously trained model saved in gdrive, replace this with the full path of model in gdrive
+
+    scheduler = DDIMScheduler(beta_start=0.00085, beta_end=0.012, beta_schedule="scaled_linear", clip_sample=False, set_alpha_to_one=False)
+    pipe = StableDiffusionPipeline.from_pretrained(model_path, scheduler=scheduler, safety_checker=None, torch_dtype=torch.float16).to("cuda")
+
+    g_cuda = None
+    #@markdown Can set random seed here for reproducibility.
+    g_cuda = torch.Generator(device='cuda')
+    seed = 52362 #@param {type:"number"}
+    g_cuda.manual_seed(seed)
+    #@title Run for generating images.
+
+    prompt = f"photo of ckz man in a bucket" #@param {type:"string"}
+    negative_prompt = "" #@param {type:"string"}
+    num_samples = 4 #@param {type:"number"}
+    guidance_scale = 7.5 #@param {type:"number"}
+    num_inference_steps = 50 #@param {type:"number"}
+    height = 512 #@param {type:"number"}
+    width = 512 #@param {type:"number"}
+
+    with autocast("cuda"), torch.inference_mode():
+        images = pipe(
+            prompt,
+            height=height,
+            width=width,
+            negative_prompt=negative_prompt,
+            num_images_per_prompt=num_samples,
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            generator=g_cuda
+        ).images
+
+    wandb.log({'prompt_images': images})
+
+
+
+
 
 
 if __name__ == "__main__":
