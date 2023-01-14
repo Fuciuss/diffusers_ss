@@ -45,12 +45,6 @@ def parse_args(input_args=None):
         help="name of the wandb project"
     ),
     parser.add_argument(
-        "--wandb_key",
-        type=str,
-        default=None,
-        required=True,
-    )
-    parser.add_argument(
         "--prior_preservation_images",
         type=str,
         default=None,
