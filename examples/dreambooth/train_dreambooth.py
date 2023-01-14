@@ -767,7 +767,7 @@ def main(args):
                             num_inference_steps=args.save_infer_steps,
                             generator=g_cuda
                         ).images
-                        wandb.log({f'sample_images_{args.save_sample_prompt}': concat_ims(images)})
+                        wandb.log({f'sample_images_{args.save_sample_prompt}': wandb.Image(concat_ims(images))})
                         images[0].save(os.path.join(sample_dir, f"{i}.png"))
                 del pipeline
                 if torch.cuda.is_available():
@@ -820,7 +820,7 @@ def main(args):
                         num_inference_steps=args.save_infer_steps,
                         generator=g_cuda
                     ).images
-                    wandb.log({f'{sample_prompt}': concat_ims(images)})
+                    wandb.log({f'{sample_prompt}': wandb.Image(concat_ims(images))})
                     # images[0].save(os.path.join(sample_dir, f"{i}.png"))
             del pipeline
             if torch.cuda.is_available():
