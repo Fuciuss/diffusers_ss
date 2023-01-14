@@ -759,9 +759,6 @@ def main(args):
                             num_inference_steps=args.save_infer_steps,
                             generator=g_cuda
                         ).images
-                        print('images')
-                        print(type(images))
-                        print(images)
                         wandb.log({f'sample_images_{step}_{args.save_sample_prompt}': [wandb.Image(img) for img in images]})
                         images[0].save(os.path.join(sample_dir, f"{i}.png"))
                 del pipeline
@@ -807,7 +804,7 @@ def main(args):
             # sample_dir = os.path.join(save_dir, "samples")
             # os.makedirs(sample_dir, exist_ok=True)
             with torch.autocast("cuda"), torch.inference_mode():
-                for i in tqdm(range(args.n_save_sample), desc="Generating samples"):
+                for i in tqdm(range(args.n_save_sample), desc=f"Generating samples for prompt: {sample_prompt}"):
                     images = pipeline(
                         sample_prompt,
                         negative_prompt=args.save_sample_negative_prompt,
@@ -924,10 +921,10 @@ def main(args):
 
     # run_inference(args)
 
-    wandb.finish()
-
+    
 
     accelerator.end_training()
+    wandb.finish()
 
 
 
