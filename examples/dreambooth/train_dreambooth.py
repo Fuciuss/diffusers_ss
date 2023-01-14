@@ -420,6 +420,9 @@ def get_full_repo_name(model_id: str, organization: Optional[str] = None, token:
 def main(args):
 
     run = wandb.init(project=args.wandb_project, config=args)
+
+
+    wandb.log({"test_html": wandb.Html('<h1>Hello HTML</h1>')})
     logging_dir = Path(args.output_dir, "0", args.logging_dir)
 
     accelerator = Accelerator(
@@ -751,7 +754,7 @@ def main(args):
                             num_inference_steps=args.save_infer_steps,
                             generator=g_cuda
                         ).images
-                        wandb.log({f'sample_images_{args.save_sample_prompt}': images})
+                        wandb.log({f'sample_images_{args.save_sample_prompt}': [wanb.Image(...) for img in images]})
                         images[0].save(os.path.join(sample_dir, f"{i}.png"))
                 del pipeline
                 if torch.cuda.is_available():
@@ -759,6 +762,7 @@ def main(args):
             print(f"[*] Weights saved at {save_dir}")
 
     def run_sample_images():
+        print("RUNNING SAMPLE IMAGES")
 
         sample_prompt="A brave warrior ckz man charing into battle"
 
@@ -803,7 +807,7 @@ def main(args):
                         num_inference_steps=args.save_infer_steps,
                         generator=g_cuda
                     ).images
-                    wandb.log({f'{sample_prompt}': images})
+                    wandb.log({f'{sample_prompt}': [wandb.Image(...) for img in images]})
                     # images[0].save(os.path.join(sample_dir, f"{i}.png"))
             del pipeline
             if torch.cuda.is_available():
