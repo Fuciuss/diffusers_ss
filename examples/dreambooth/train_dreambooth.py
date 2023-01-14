@@ -767,6 +767,7 @@ def main(args):
                             num_inference_steps=args.save_infer_steps,
                             generator=g_cuda
                         ).images
+                        print(f'logging sample image to wandb, step: {step}')
                         wandb.log({f'sample_images_{args.save_sample_prompt}': wandb.Image(concat_ims(images))})
                         images[0].save(os.path.join(sample_dir, f"{i}.png"))
                 del pipeline
@@ -820,6 +821,7 @@ def main(args):
                         num_inference_steps=args.save_infer_steps,
                         generator=g_cuda
                     ).images
+                    print(f'logging prompt image to wandb, step: {step}')
                     wandb.log({f'{sample_prompt}': wandb.Image(concat_ims(images))})
                     # images[0].save(os.path.join(sample_dir, f"{i}.png"))
             del pipeline
@@ -922,7 +924,7 @@ def main(args):
         accelerator.wait_for_everyone()
 
     save_weights(global_step)
-    run_sample_images()
+    run_sample_images(global_step)
 
 
 
