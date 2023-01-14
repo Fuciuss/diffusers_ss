@@ -52,6 +52,11 @@ def parse_args(input_args=None):
         help="What method is used for prior preservation images? (generated or manually collected)"
     ),
     parser.add_argument(
+        "--minimum_save_step",
+        type=int,
+        required=True
+    )
+    parser.add_argument(
         "--pretrained_model_name_or_path",
         type=str,
         default=None,
@@ -754,7 +759,10 @@ def main(args):
                             num_inference_steps=args.save_infer_steps,
                             generator=g_cuda
                         ).images
-                        wandb.log({f'sample_images_{args.save_sample_prompt}': [wandb.Image(...) for img in images]})
+                        print('images')
+                        print(type(images))
+                        print(images)
+                        wandb.log({f'sample_images_{args.save_sample_prompt}': [wandb.Image(img) for img in images]})
                         images[0].save(os.path.join(sample_dir, f"{i}.png"))
                 del pipeline
                 if torch.cuda.is_available():
@@ -894,7 +902,7 @@ def main(args):
                 progress_bar.set_postfix(**logs)
                 accelerator.log(logs, step=global_step)
 
-            if global_step > 0 and not global_step % args.save_interval and global_step >= args.save_min_steps:
+            if global_step > args.minimum_save_step and not global_step % args.save_interval and global_step >= args.save_min_steps:
                 save_weights(global_step)
 
 
