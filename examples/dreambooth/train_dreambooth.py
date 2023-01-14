@@ -778,7 +778,7 @@ def main(args):
     def run_sample_images(step):
         print("RUNNING SAMPLE IMAGES")
 
-        sample_prompt="A brave warrior ckz man charing into battle"
+        sample_prompt="A brave warrior ckz man charging into battle"
 
         # Create sample images for a prompt
         if accelerator.is_main_process:
