@@ -34,6 +34,14 @@ torch.backends.cudnn.benchmark = True
 
 logger = get_logger(__name__)
 
+def concat_ims(ims):
+    dst = Image.new('RGB', (ims[0].width * len(ims), ims[0].height))
+    for i in range(len(ims)):
+        im_width = i * ims[i].width
+        dst.paste(ims[i], (im_width, 0))
+    return dst
+
+
 
 def parse_args(input_args=None):
     parser = argparse.ArgumentParser(description="Simple example of a training script.")
@@ -759,7 +767,7 @@ def main(args):
                             num_inference_steps=args.save_infer_steps,
                             generator=g_cuda
                         ).images
-                        wandb.log({f'sample_images_{step}_{args.save_sample_prompt}': [wandb.Image(img) for img in images]})
+                        wandb.log({f'sample_images_{args.save_sample_prompt}': concat_ims(images)})
                         images[0].save(os.path.join(sample_dir, f"{i}.png"))
                 del pipeline
                 if torch.cuda.is_available():
@@ -812,7 +820,7 @@ def main(args):
                         num_inference_steps=args.save_infer_steps,
                         generator=g_cuda
                     ).images
-                    wandb.log({f'{sample_prompt}_{step}': [wandb.Image(img) for img in images]})
+                    wandb.log({f'{sample_prompt}': concat_ims(images)})
                     # images[0].save(os.path.join(sample_dir, f"{i}.png"))
             del pipeline
             if torch.cuda.is_available():
