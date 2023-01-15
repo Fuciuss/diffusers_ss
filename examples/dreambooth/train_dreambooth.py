@@ -759,6 +759,7 @@ def main(args):
                 sample_dir = os.path.join(save_dir, "samples")
                 os.makedirs(sample_dir, exist_ok=True)
                 with torch.autocast("cuda"), torch.inference_mode():
+                    log_ims = []
                     for i in tqdm(range(args.n_save_sample), desc="Generating samples"):
                         images = pipeline(
                             args.save_sample_prompt,
@@ -767,9 +768,12 @@ def main(args):
                             num_inference_steps=args.save_infer_steps,
                             generator=g_cuda
                         ).images
+                        log_ims.append(images)
                         print(f'logging sample image to wandb, step: {step}')
-                        wandb.log({f'sample_images_{args.save_sample_prompt}': wandb.Image(concat_ims(images))})
                         images[0].save(os.path.join(sample_dir, f"{i}.png"))
+
+                    wandb.log({f'sample_images_{args.save_sample_prompt}': wandb.Image(concat_ims(log_ims))})
+
                 del pipeline
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
@@ -813,6 +817,7 @@ def main(args):
             # sample_dir = os.path.join(save_dir, "samples")
             # os.makedirs(sample_dir, exist_ok=True)
             with torch.autocast("cuda"), torch.inference_mode():
+                log_ims = []
                 for i in tqdm(range(args.n_save_sample), desc=f"Generating samples for prompt: {sample_prompt}"):
                     images = pipeline(
                         sample_prompt,
@@ -822,8 +827,10 @@ def main(args):
                         generator=g_cuda
                     ).images
                     print(f'logging prompt image to wandb, step: {step}')
-                    wandb.log({f'{sample_prompt}': wandb.Image(concat_ims(images))})
+                    log_ims.append(images)
+                    
                     # images[0].save(os.path.join(sample_dir, f"{i}.png"))
+                wandb.log({f'{sample_prompt}': wandb.Image(concat_ims(log_ims))})
             del pipeline
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
