@@ -768,7 +768,7 @@ def main(args):
                             num_inference_steps=args.save_infer_steps,
                             generator=g_cuda
                         ).images
-                        log_ims.append(images)
+                        log_ims.append(images[0])
                         print(f'logging sample image to wandb, step: {step}')
                         images[0].save(os.path.join(sample_dir, f"{i}.png"))
 
@@ -827,7 +827,7 @@ def main(args):
                         generator=g_cuda
                     ).images
                     print(f'logging prompt image to wandb, step: {step}')
-                    log_ims.append(images)
+                    log_ims.append(images[0])
                     
                     # images[0].save(os.path.join(sample_dir, f"{i}.png"))
                 wandb.log({f'{sample_prompt}': wandb.Image(concat_ims(log_ims))})
