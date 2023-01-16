@@ -478,8 +478,10 @@ def main(args):
             class_images_dir.mkdir(parents=True, exist_ok=True)
             cur_class_images = len(list(class_images_dir.iterdir()))
 
+            print("adding class_images to artifact")
             artifact = wandb.Artifact(name='regularisation_images', type='dataset')
-            artifact.add_dir(class_images_dir, name=f'{concept}_regularisation_images')
+            print(f'artifact: {artifact}, concept:{concept}')
+            artifact.add_dir(class_images_dir, name=f'regularisation_images')
             run.log_artifact(artifact)
 
             if cur_class_images < args.num_class_images:
